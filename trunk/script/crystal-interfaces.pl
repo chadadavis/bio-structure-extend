@@ -1,6 +1,18 @@
 #!/usr/bin/env perl
 
-# Tanmay's crystal interfaces extracted from symmetry operators
+=head1 NAME
+
+crystal-interfaces - 
+
+=head1 SYNOPSIS
+
+
+
+=head1 DESCRIPTION
+
+Crystal interfaces extracted from symmetry operators
+
+=cut
 
 use Moose::Autobox;
 use PDL;
