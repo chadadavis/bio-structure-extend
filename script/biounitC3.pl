@@ -27,14 +27,16 @@ use File::Basename;
 use IO::Uncompress::Gunzip;
 use Bio::Structure::IO::pdb;
 
-#use lib "$ENV{HOME}/src/sbglib/lib";
-
 use SBG::Domain;
 use SBG::Transform::Affine;
 use SBG::Superposition::Cache qw/superposition/;
 use PBS::ARGV;
-
 use SBG::Debug;
+
+use FindBin qw/$Bin/;
+use lib "$Bin/../lib/";
+use SBG::SymmExt qw(assembly2doms);
+
 
 # TODO make this a wiki demo
 for my $pdbid (@ARGV) {
@@ -44,7 +46,7 @@ for my $pdbid (@ARGV) {
 
     # Use first biounit assembly by default
     my $assembly = SBG::Domain->new(pdbid => $pdbid, assembly => 1);
-    my @doms = _assembly2doms($assembly);
+    my @doms = assembly2doms($assembly);
     if (@doms != 3) { next; }
 
     if (@doms != 3) {
@@ -119,31 +121,3 @@ sub _is_ring {
     return $equal;
 }
 
-sub _assembly2doms {
-    my ($assembly) = @_;
-    my $gunzipped = IO::Uncompress::Gunzip->new($assembly->file);
-    # PDB parser to determine the models and chain in one assembly
-    my $io = Bio::Structure::IO->new(
-        -format => 'pdb',
-        -fh     => $gunzipped,
-    );
-
-    my $entry  = $io->next_structure;
-    my @models = $entry->get_models;
-    my @doms;
-    for my $model (@models) {
-        my @chains = $entry->get_chains($model);
-        for my $chain (@chains) {
-            my $dom = SBG::Domain->new(
-                pdbid      => $assembly->pdbid,
-                assembly   => 1,
-                model      => $model->id,
-                descriptor => 'CHAIN ' . $chain->id,
-            );
-            ### $dom
-            ### file : $dom->file
-            push @doms, $dom;
-        }
-    }
-    return @doms;
-}
