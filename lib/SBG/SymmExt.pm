@@ -60,3 +60,5 @@ sub assembly2doms {
     }
     return @doms;
 }
+
+1;
