@@ -6,6 +6,14 @@
 =head1 DESCRIPTION
 
 
+=head1 AUTHOR
+
+Chad A Davis chad.a.davis at gmail.com
+
+=head1 LICENSE
+
+This library is free software. You can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut
 
@@ -29,6 +37,7 @@ use SBG::Superposition::Cache;
 # To save domains to a file
 use SBG::DomainIO::pdb;
 
+our $VERSION = 20111005;
 
 has 'pdbid'    => (
     is => 'ro', isa => 'Str',
