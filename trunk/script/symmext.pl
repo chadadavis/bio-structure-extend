@@ -21,111 +21,101 @@ structure and the biounit assembly.
 
 use strict;
 use warnings;
+use Moose::Autobox;
+use IO::Prompt;
 
-use Devel::Comments;
-use Bio::Structure::IO;
-use Bio::Tools::Run::QCons;
-use Graph::Undirected;
+use SBG::SymmExt;
 
-use SBG::Domain;
-use SBG::Superposition::Cache qw(superposition);
 use SBG::Run::rasmol qw(rasmol);
-use SBG::U::List qw(pairs pairs2);
-#use SBG::Run::qcons qw(qcons);
-
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib/";
-use SBG::SymmExt qw(assembly2doms);
-
-use SBG::U::DB qw(connect dsn);
-
-my $sql = <<'EOF';
-SELECT e1.chain as chain1, e2.chain as chain2
-FROM 
-     entity  as e1 
-join contact as c1 on (e1.id=c1.id_entity1)
-join entity  as e2 on (e2.id=c1.id_entity2)
-where 
-    e1.idcode=? and e1.type='chain' -- restrict to 'chain'  for speedup
-and e2.idcode=? and e2.type='chain' -- restrict both halves for speedup
-;
-EOF
 
 
 for my $pdbid (@ARGV) {
-    # Use first assembly of biounit by default
-    my $assembly = SBG::Domain->new(pdbid => $pdbid, assembly => 1);
-
-    # Reading doms and indexing by chain belongs in BioX::Structure::Complex
-    my @assembly_doms = assembly2doms($assembly);
-    my %assembly_dom = map { $_->onechain => $_ } @assembly_doms;
-    my @assembly_chains = keys %assembly_dom;
-    ### @assembly_chains
-
-    # Get author domains
-    # Index by chain ID
-    my $author = SBG::Domain->new(pdbid => $pdbid);
-    my @author_doms = assembly2doms($author);
-    my %author_dom = map { $_->onechain => $_ } @author_doms;
-    my @author_chains = keys %author_dom;
-    ### @author_chains
-
-    # Components that are only in the author structure (set difference)
-    my @diff_chains = grep { 
-        my $a = $_; 
-        # True when this author chain equals none of the assembly chains
-        @assembly_chains == grep { $a ne $_ } @assembly_chains 
-    } @author_chains;
-    ### @diff_chains
-
-    # Track all contacts in an undirected graph
-    my $graph = Graph::Undirected->new;
-    my $contacts = contacts($pdbid);
-    for my $contact (@$contacts) {
-        $graph->add_edge(@$contact);
+    if (-e "extensions/$pdbid.done") {
+        print "$pdbid done\n";
+        next;
     }
 
-    # Enumerate contacts, but only potential crystal contacts
-    # I.e. an interactions between one biounit asssembly component and one not
-    for my $pair (pairs2(\@assembly_chains, \@diff_chains)) {
-        my ($assembly_chain, $author_chain) = @$pair;
+    my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
 
-        # Skip, if this pair is not in contact (Note, undirected graph)
-        if (! $graph->has_edge($assembly_chain, $author_chain)) { next; }
-        ### Crystal contact: $assembly_chain, $author_chain
+    my $contacts = $symmext->crystal_contacts;
+    my $contact_i = 0;
+    my $contact = $contacts->[$contact_i];
+    my $save_i = 0;
+    while (1) {
+        header($symmext, $contact_i);
 
-        # Interactive keep/reject prompt at each step in tree search?
-        # TODO how to iterate here?
+        rasmol($symmext->domains->flatten);
 
-        # Get superposition over crystal contact
-        my $superposition = superposition(
-            $assembly_dom{$assembly_chain}, $author_dom{$author_chain},
-        );
-        my @copies = map { $_->clone } @assembly_doms;
-        #    $superposition->apply(@copies); # broken
-        $superposition->apply($_) for @copies;
+        my $opt = menu($symmext);
 
-        # Display them together
-        # (visually verify whether overlap is a superposition or a clash)
-        rasmol(@assembly_doms, @copies);
+        if (0) {
+        }
+        elsif ($opt eq 'c') {
+            $symmext->apply($contact);
+        }
+        elsif ($opt eq 'd') {
+            last;
+        }
+        elsif ($opt eq 'q') {
+            exit;
+        }
+        elsif ($opt eq 'n') {
+            $contact_i = ++$contact_i % $contacts->length;
+            $contact = $contacts->[$contact_i];
+        }
+        elsif ($opt eq 'r') {
+            $symmext->clear_state;
+        }
+        elsif ($opt eq 's') {
+            save($symmext, $save_i++);
+        }
+        elsif ($opt eq 'u') {
+            $symmext->undo;
+        }
     }
+
+    `touch extensions/$pdbid.done`;
+
+} # for pdbids
+
+sub header {
+    my ($symmext, $contact_i) = @_;
+    my $contact = $symmext->crystal_contacts->[$contact_i];
+    my $n_contacts = $symmext->crystal_contacts->length;
+    print sprintf 
+        "\nPDB %s Contact %2d (%s) (of %2d) Sub-complexes %2d\n",
+        $symmext->pdbid,
+        $contact_i + 1,
+        $contact->join('--'),
+        $n_contacts,
+        $symmext->all->length,
+        ;
+}
+
+sub menu {
+    my ($symmext, $contact_i) = @_;
+    my $p = "[c]ontinue [n]ext [u]ndo [r]eset [s]ave [d]one [q]uit : ";
+    my $res = prompt $p, qw(-tty -one_char);
+    print "\n";
+    return $res;
+}
+
+sub save {
+    my ($symmext, $i ) = @_;
+    my $pdbid = $symmext->pdbid;
+    my $file = prompt(
+        "\nSave to file: ",
+        -tty,
+        -default => sprintf("extensions/%s-%02d.pdb", $pdbid, $i),
+    );
+    $file = "$file";
+    my $io = $symmext->write($file);
+    print 'Saved: ', $io->file, "\n";
+
 }
 
 
 exit;
 
-
-
-sub contacts {
-    my ($pdbid) = @_;
-    # Cached
-    my $dbh = connect(dsn(database=>'trans_3_0'));
-    # Also cached
-    my $sth = $dbh->prepare_cached($sql);
-    $sth->execute($pdbid, $pdbid);
-    my $rs = $sth->fetchall_arrayref;
-    ### $rs
-    return $rs;
-}
 
 
