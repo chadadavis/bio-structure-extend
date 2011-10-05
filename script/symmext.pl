@@ -24,9 +24,12 @@ use warnings;
 use Moose::Autobox;
 use IO::Prompt;
 
-use SBG::SymmExt;
-
 use SBG::Run::rasmol qw(rasmol);
+
+use FindBin '$Bin';
+use lib "$Bin/../lib";
+
+use SBG::SymmExt;
 
 
 for my $pdbid (@ARGV) {
@@ -38,10 +41,13 @@ for my $pdbid (@ARGV) {
     my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
 
     my $contacts = $symmext->crystal_contacts;
+    if ($contacts->length == 0) {
+        warn "$pdbid : No crystal contacts\n";
+    }
     my $contact_i = 0;
     my $contact = $contacts->[$contact_i];
     my $save_i = 0;
-    while (1) {
+    while (defined $contact) {
         header($symmext, $contact_i);
 
         rasmol($symmext->domains->flatten);
@@ -50,7 +56,7 @@ for my $pdbid (@ARGV) {
 
         if (0) {
         }
-        elsif ($opt eq 'c') {
+        elsif ($opt eq 'a') {
             $symmext->apply($contact);
         }
         elsif ($opt eq 'd') {
@@ -94,7 +100,7 @@ sub header {
 
 sub menu {
     my ($symmext, $contact_i) = @_;
-    my $p = "[c]ontinue [n]ext [u]ndo [r]eset [s]ave [d]one [q]uit : ";
+    my $p = "[a]pply [n]ext [u]ndo [r]eset [s]ave [d]one [q]uit : ";
     my $res = prompt $p, qw(-tty -one_char);
     print "\n";
     return $res;
