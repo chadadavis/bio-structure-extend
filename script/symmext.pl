@@ -34,16 +34,16 @@ use SBG::SymmExt;
 
 for my $pdbid (@ARGV) {
     if (-e "extensions/$pdbid.done") {
-        print "$pdbid done\n";
+        print "$pdbid : Done\n";
         next;
     }
-
+    print "$pdbid : Starting\n";
     my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
-
     my $contacts = $symmext->crystal_contacts;
     if ($contacts->length == 0) {
         warn "$pdbid : No crystal contacts\n";
     }
+
     my $contact_i = 0;
     my $contact = $contacts->[$contact_i];
     my $save_i = 0;
