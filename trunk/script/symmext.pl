@@ -50,8 +50,6 @@ for my $pdbid (@ARGV) {
     while (defined $contact) {
         header($symmext, $contact_i);
 
-        rasmol($symmext->domains->flatten);
-
         my $opt = menu($symmext);
 
         if (0) {
@@ -78,6 +76,9 @@ for my $pdbid (@ARGV) {
         elsif ($opt eq 'u') {
             $symmext->undo;
         }
+        elsif ($opt eq 'v') {
+            rasmol($symmext->domains->flatten);
+        }
     }
 
     `touch extensions/$pdbid.done`;
@@ -100,7 +101,7 @@ sub header {
 
 sub menu {
     my ($symmext, $contact_i) = @_;
-    my $p = "[a]pply [n]ext [u]ndo [r]eset [s]ave [d]one [q]uit : ";
+    my $p = "[v]iew [a]pply [n]ext [u]ndo [r]eset [s]ave [d]one [q]uit : ";
     my $res = prompt $p, qw(-tty -one_char);
     print "\n";
     return $res;
