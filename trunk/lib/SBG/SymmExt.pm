@@ -120,8 +120,14 @@ method apply ($contact) {
     ### $contact
     my $last = $self->state->last || $self->biounit;
     my $clone = $last->clone;
-    my $superposition = $self->superposition($contact);
-    $superposition->apply($_) for $clone->domains->flatten;
+    my $transformation = $self->superposition($contact)->transformation;
+    for my $domain ($clone->domains->flatten) {
+        # Apply the crystal contact transformation first (hence on the right),
+        # then the existing transformation already in the model.
+        my $rl = $domain->transformation x $transformation;
+        # And assign this as the new transformation
+        $domain->transformation($rl);
+    }
     $self->state->push($clone);
     return $self;
 }
