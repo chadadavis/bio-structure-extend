@@ -1,5 +1,36 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+SBG::SymmExt::Complex - Simple contains for L<SBG::Domain> objects
+
+=head1 SYNOPSIS
+
+ use SBG::SymmExt::Complex;
+ my $biounit = SBG::SymmExt::Complex->new(
+     pdbid => '1abc',
+     assembly => 1, 
+ );
+
+ my $author_deposited = SBG::SymmExt::Complex->new(
+     pdbid => '1abc',
+     # No assembly provided here
+ );
+
+=head1 DESCRIPTION
+
+Placeholder class until BioX::Structure::Complex is complete
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<SBG::SymmExt>
+
+=back
+
+=cut
+
 # Must be loaded before MooseX::Declare
 #use Devel::Comments;
 

@@ -1,10 +1,26 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+SBG::SymmExt - Symmetry extension of crystal contacts (from C3 structures)
+
 =head1 SYNOPSIS
 
+ use SBG::SymmExt;
+ my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
+ my $contacts = $symmext->crystal_contacts;
+ my $contact;
+ $contact = $contacts->[0];
+ $symmext->apply($contact);
+ $symmext->undo;
+ $contact = $contacts->[0];
+ $symmext->apply($contact);
+ $symmext->apply($contact);
+ $symmext->clear_state;
 
 =head1 DESCRIPTION
 
+Applies crystal contact symmetries to a structur to extend the complex model
 
 =head1 AUTHOR
 
