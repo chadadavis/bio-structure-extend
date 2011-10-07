@@ -2,11 +2,11 @@
 
 =head1 NAME
 
-symmext - Take a trimer and use a crystal contact to generate 5-fold symmetry
+symmext - Take a trimer and use crystal contacts to generate multimers
 
 =head1 SYNOPSIS
 
-
+ symmext.pl 1abc 1xyz ...
 
 =head1 DESCRIPTION
 
@@ -15,7 +15,8 @@ Assumes that each PDB ID is exactly a 3-mer in the biounit and at least a
 homo-meric.
 
 Requires that the chain IDs are the same between the author-depoisited
-structure and the biounit assembly.
+structure and the biounit assembly. This is the default of the biounit
+(biological unit structures provided by the wwPDB).
 
 =cut
 
