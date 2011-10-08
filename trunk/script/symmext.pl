@@ -26,6 +26,7 @@ use Moose::Autobox;
 use IO::Prompt;
 
 use SBG::Run::rasmol qw(rasmol);
+use SBG::U::Run qw(start_lock end_lock);
 
 use FindBin '$Bin';
 use lib "$Bin/../lib";
@@ -34,10 +35,10 @@ use SBG::SymmExt;
 
 
 for my $pdbid (@ARGV) {
-    if (-e "extensions/$pdbid.done") {
-        print "$pdbid : Done\n";
-        next;
-    }
+    my $done_file = "extensions/$pdbid";
+    my $lock = start_lock($done_file);
+    if (! defined $lock) { next; }
+
     print "$pdbid : Starting\n";
     my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
     my $contacts = $symmext->crystal_contacts;
@@ -82,7 +83,7 @@ for my $pdbid (@ARGV) {
         }
     }
 
-    `touch extensions/$pdbid.done`;
+    end_lock($lock);
 
 } # for pdbids
 
