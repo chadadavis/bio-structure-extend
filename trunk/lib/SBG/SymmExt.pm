@@ -52,6 +52,8 @@ use SBG::U::List qw(pairs2);
 use SBG::Superposition::Cache;
 # To save domains to a file
 use SBG::DomainIO::pdb;
+# Alternate, slower contact computation
+use SBG::Run::qcons qw(qcons);
 
 our $VERSION = 20111005;
 
@@ -82,7 +84,11 @@ Contacts between a biounit chain and a non-biounit chain
 =cut
 
 has 'crystal_contacts' => (
-    is => 'ro', isa => 'ArrayRef[ArrayRef]',    lazy_build => 1,
+    is => 'ro', isa => 'ArrayRef',    lazy_build => 1,
+);
+
+has 'qcons_contacts' => (
+    is => 'ro', isa => 'ArrayRef', lazy_build => 1,
 );
 
 has 'contacts_db'   => (
@@ -227,7 +233,8 @@ method _build_contacts {
     return $rs;
 }
 
-method _build_crystal_contacts {
+# Pairs of potential interactions, biounit to non-biounit
+method _pairs {
     my $set_a = Set::Scalar->new($self->author->chains->flatten);
     my $set_b = Set::Scalar->new($self->biounit->chains->flatten);
     # What's in the author structure, but not in biounit
@@ -236,7 +243,14 @@ method _build_crystal_contacts {
     my $contacts = [];
 
     # All pairs between a biounit chain an a non-biounit chain
-    for my $pair (pairs2($self->biounit->chains, [ $set_d->members ])) {
+    my @pairs = pairs2($self->biounit->chains, [ $set_d->members ]);
+    return wantarray ? @pairs : \@pairs;
+}
+
+method _build_crystal_contacts {
+    my $contacts = [];
+    # All pairs between a biounit chain an a non-biounit chain
+    for my $pair ($self->_pairs()) {
         my ($chain_b, $chain_a) = @$pair;
         # Skip, if this pair is not in contact (Note, undirected graph)
         if (! $self->graph->has_edge($chain_b, $chain_a)) { next; }
@@ -245,5 +259,16 @@ method _build_crystal_contacts {
     return $contacts;
 }
 
+method _build_qcons_contacts {
+    my $contacts = [];
+    for my $pair ($self->_pairs()) {
+        my @doms = map { 
+            SBG::Domain->new(pdbid => $self->pdbid, descriptor => "CHAIN $_");
+        } @$pair;
+        my $qcons = qcons(@doms);
+        if ($qcons->length > 0) { $contacts->push($pair); }
+    }
+    return $contacts; 
+}
 
 } # class

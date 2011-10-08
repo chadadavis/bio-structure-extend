@@ -7,6 +7,8 @@ use Test::More;
 use Moose::Autobox;
 use Data::Show;
 
+#use Devel::Comments;
+
 # If executed directly, as a script, rather than a loaded module
 if (! caller) {
     Test::Class->runtests();
@@ -116,6 +118,18 @@ sub domains : Tests {
     my $obj = $self->{obj};
     is $obj->domains->length, 6
         or diag show $obj;
+}
+
+sub qcons_contacts : Tests {
+    my ($self) = @_;
+    my $obj = $self->{obj};
+    my $contacts = $obj->qcons_contacts;
+    is $contacts->length, 2
+        or diag show $obj;
+    # Verify the actual contacts
+    my $flattened = [ sort map { "@$_" } @$contacts ];
+    eq_array $flattened, [ 'C B', 'D B' ]
+        or diag show $contacts;
 }
 
 1;
