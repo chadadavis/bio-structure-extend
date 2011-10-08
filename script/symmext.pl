@@ -32,7 +32,7 @@ use FindBin '$Bin';
 use lib "$Bin/../lib";
 
 use SBG::SymmExt;
-
+#use Devel::Comments;
 
 for my $pdbid (@ARGV) {
     my $done_file = "extensions/$pdbid";
@@ -43,14 +43,21 @@ for my $pdbid (@ARGV) {
     my $symmext = SBG::SymmExt->new(pdbid => $pdbid);
     my $contacts = $symmext->crystal_contacts;
     if ($contacts->length == 0) {
-        warn "$pdbid : No crystal contacts\n";
+        warn "$pdbid : No contacts from Trans DB\n";
+        $contacts = $symmext->qcons_contacts;
+        if ($contacts->length == 0) {
+            warn "$pdbid : No Qcontacts\n";
+            end_lock($lock);
+            next;
+        }
+        ### qcons : $contacts;
     }
 
     my $contact_i = 0;
     my $contact = $contacts->[$contact_i];
     my $save_i = 0;
     while (defined $contact) {
-        header($symmext, $contact_i);
+        header($symmext, $contacts, $contact_i);
 
         my $opt = menu($symmext);
 
@@ -88,9 +95,9 @@ for my $pdbid (@ARGV) {
 } # for pdbids
 
 sub header {
-    my ($symmext, $contact_i) = @_;
-    my $contact = $symmext->crystal_contacts->[$contact_i];
-    my $n_contacts = $symmext->crystal_contacts->length;
+    my ($symmext, $contacts, $contact_i) = @_;
+    my $contact = $contacts->[$contact_i];
+    my $n_contacts = $contacts->length;
     print sprintf 
         "\nPDB %s Contact %2d (%s) (of %2d) Sub-complexes %2d\n",
         $symmext->pdbid,
