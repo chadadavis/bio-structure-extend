@@ -59,8 +59,8 @@ method chains {
 method _build_domain {
     # Create a SBG::Domain to lookup the file
     # TODO might want to save this in an attr (later)
-    # Copy default attributes from self
-    my $opts = $self->_hslice qw(pdbid assembly);
+    # Copy default attributes from self (hash slice)
+    my $opts = $self->Moose::Autobox::Hash::hslice([qw(pdbid assembly)]);
     my $domain = SBG::Domain->new(%$opts);
     my $gunzipped = IO::Uncompress::Gunzip->new($domain->file);
     # PDB parser to determine the models and chain in one assembly
