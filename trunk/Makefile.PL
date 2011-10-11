@@ -31,8 +31,6 @@ requires "Config" => "0";
 requires "Cwd" => "0";
 requires "DBI" => "0";
 requires "Data::Dump" => "0";
-requires "Data::Show" => "0";
-requires "Devel::Comments" => "0";
 requires "ExtUtils::MakeMaker" => "0";
 requires "Fcntl" => "0";
 requires "File::Basename" => "0";
@@ -62,6 +60,7 @@ requires "inc::Module::Install" => "0";
 # Only required for testing
 test_requires 'Test::Class' => '0';
 test_requires 'Test::More' => '0';
+test_requires "Data::Show" => "0";
 
 # install_script glob('script/*.pl');
 
