@@ -22,7 +22,7 @@ Russell group 'ras' tool.
 
 use strict;
 use warnings;
-use Devel::Comments;
+#use Devel::Comments;
 use File::Basename;
 use IO::Uncompress::Gunzip;
 use Bio::Structure::IO::pdb;
