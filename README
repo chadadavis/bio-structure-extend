@@ -12,6 +12,8 @@ Qcontacts Perl Module
 SBGlib
  http://code.google.com/p/sbglib/source/checkout
 
+Rasmol is required for visualization
+
 INSTALLATION
 
 To install this module, run the following commands:
