@@ -30,7 +30,6 @@ requires "Bio::Tools::Run::QCons" => "0";
 requires "Config" => "0";
 requires "Cwd" => "0";
 requires "DBI" => "0";
-requires "Data::Dump" => "0";
 requires "ExtUtils::MakeMaker" => "0";
 requires "Fcntl" => "0";
 requires "File::Basename" => "0";
@@ -41,7 +40,6 @@ requires "FindBin" => "0";
 requires "Graph::Undirected" => "0";
 requires "IO::Prompt" => "0";
 requires "IO::Uncompress::Gunzip" => "0";
-requires "List::MoreUtils" => "0";
 requires "List::Util" => "0";
 requires "Log::Any" => "0";
 requires "Module::AutoInstall" => "0";
@@ -52,13 +50,12 @@ requires "PBS::ARGV" => "0";
 requires "PDL" => "0";
 requires "Set::Scalar" => "0";
 requires "Storable" => "0";
-requires "Test::Class::Load" => "0";
-requires "Test::More" => "0";
 requires "Text::CSV" => "0";
 requires "inc::Module::Install" => "0";
 
 # Only required for testing
 test_requires 'Test::Class' => '0';
+test_requires "Test::Class::Load" => "0";
 test_requires 'Test::More' => '0';
 test_requires "Data::Show" => "0";
 

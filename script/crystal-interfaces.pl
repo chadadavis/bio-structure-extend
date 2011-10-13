@@ -16,7 +16,6 @@ Crystal interfaces extracted from symmetry operators
 
 use Moose::Autobox;
 use PDL;
-use Data::Dump qw/dump/;
 
 # Local libraries
 use FindBin qw/$Bin/;
