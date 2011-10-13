@@ -1,0 +1,33 @@
+
+Tools for symmetry extension of protein complexes
+
+DEPENDENCIES
+
+Qcontacts
+ http://dl.dropbox.com/u/6526608/Qcontacts.tar.gz
+
+Qcontacts Perl Module
+ https://github.com/chadadavis/qcons/downloads
+
+SBGlib
+ http://code.google.com/p/sbglib/source/checkout
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+ perl Makefile.PL
+ make test
+ make install
+
+SOURCE
+
+ svn checkout https://russelllab.org/svn/symmext
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2007-2011 Chad A Davis <chad.a.davis@gmail.com>
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+

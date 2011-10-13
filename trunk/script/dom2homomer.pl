@@ -30,7 +30,6 @@ use Algorithm::DistanceMatrix;
 use Algorithm::Cluster::Thresh 0.04;
 use Algorithm::Cluster qw/treecluster/;
 use List::Util qw/max/;
-use List::MoreUtils qw/uniq/;
 
 use SBG::DomainIO::stamp;
 use SBG::Superposition::Cache qw/superposition/;
