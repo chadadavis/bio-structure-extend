@@ -41,19 +41,16 @@ class SBG::SymmExt {
 use strict;
 use warnings;
 use Moose::Autobox;
-use Graph::Undirected;
 use Set::Scalar;
-use DBI;
 
 use SBG::SymmExt::Complex;
 
-use SBG::U::List qw(pairs2);
+use SBG::U::List qw(pairs pairs2);
 # For superposition()
 use SBG::Superposition::Cache;
 # To save domains to a file
 use SBG::DomainIO::pdb;
-# Alternate, slower contact computation
-use SBG::Run::qcons qw(qcons);
+use SBG::Run::check_ints qw(check_ints);
 
 our $VERSION = 20111005;
 
@@ -67,16 +64,6 @@ has 'biounit'  => (
     is => 'ro', isa => 'SBG::SymmExt::Complex', lazy_build => 1,
 );
 
-=head2
-
-Contacts between all chain in the author-deposited structure
-
-=cut
-
-has 'contacts' => (
-    is => 'ro', isa => 'ArrayRef[ArrayRef]',    lazy_build => 1,
-);
-
 =head2 
 
 Contacts between a biounit chain and a non-biounit chain
@@ -87,17 +74,6 @@ has 'crystal_contacts' => (
     is => 'ro', isa => 'ArrayRef',    lazy_build => 1,
 );
 
-has 'qcons_contacts' => (
-    is => 'ro', isa => 'ArrayRef', lazy_build => 1,
-);
-
-has 'contacts_db'   => (
-    is => 'rw', isa => 'Str', default => 'trans_3_0',
-);
-
-has 'graph' => (
-    is => 'ro', isa => 'Graph::Undirected', lazy_build => 1,
-);
 
 has 'state' => (
     is => 'ro', 
@@ -105,18 +81,6 @@ has 'state' => (
     lazy_build => 1,
     clearer => 'clear_state',
 );
-
-has '_contacts_sql' => ( is => 'ro', isa => 'Str', default => <<EOF);
-SELECT e1.chain as chain1, e2.chain as chain2
-FROM 
-     entity  as e1 
-join contact as c1 on (e1.id=c1.id_entity1)
-join entity  as e2 on (e2.id=c1.id_entity2)
-where 
-    e1.idcode=? and e1.type='chain' -- restrict to 'chain'  for speedup
-and e2.idcode=? and e2.type='chain' -- restrict both halves for speedup
-;
-EOF
 
 
 =head2 
@@ -213,25 +177,6 @@ method _build_biounit {
     return SBG::SymmExt::Complex->new(pdbid => $self->pdbid, assembly => 1, );
 }
 
-method _build_graph {
-    my $graph = Graph::Undirected->new;
-    for my $contact ($self->contacts->flatten) {
-        $graph->add_edge(@$contact);
-    }
-    return $graph;
-}
-
-method _build_contacts {
-    my $pdbid = $self->pdbid;
-    my $dsn = 'dbi:mysql:host=russelllab.org;database=' . $self->contacts_db;
-    # Cached
-    my $dbh = DBI->connect_cached($dsn, 'anonymous');
-    # Also cached
-    my $sth = $dbh->prepare_cached($self->_contacts_sql);
-    $sth->execute($pdbid, $pdbid);
-    my $rs = $sth->fetchall_arrayref;
-    return $rs;
-}
 
 # Pairs of potential interactions, biounit to non-biounit
 method _pairs {
@@ -249,26 +194,14 @@ method _pairs {
 
 method _build_crystal_contacts {
     my $contacts = [];
-    # All pairs between a biounit chain an a non-biounit chain
-    for my $pair ($self->_pairs()) {
-        my ($chain_b, $chain_a) = @$pair;
-        # Skip, if this pair is not in contact (Note, undirected graph)
-        if (! $self->graph->has_edge($chain_b, $chain_a)) { next; }
-        $contacts->push($pair);
-    }
-    return $contacts;
-}
-
-method _build_qcons_contacts {
-    my $contacts = [];
     for my $pair ($self->_pairs()) {
         my @doms = map { 
             SBG::Domain->new(pdbid => $self->pdbid, descriptor => "CHAIN $_");
         } @$pair;
-        my $qcons = qcons(@doms);
-        if ($qcons->length > 0) { $contacts->push($pair); }
+        my $res_contacts = check_ints(\@doms);
+        if ($res_contacts) { $contacts->push($pair); }
     }
-    return $contacts; 
+    return $contacts;
 }
 
 } # class

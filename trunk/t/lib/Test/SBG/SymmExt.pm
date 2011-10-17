@@ -24,15 +24,6 @@ sub setup : Test(setup => 1) {
     $self->{obj} = $obj;
 }
 
-sub contacts : Tests {
-    my ($self) = @_;
-    my $obj = $self->{obj};
-    my $contacts = $obj->contacts;
-    is $contacts->length, 16, 'contacts() from trans_db' 
-        or diag show $contacts;
-
-}
-
 sub author : Tests {
     my ($self) = @_;
     my $obj = $self->{obj};
@@ -43,14 +34,6 @@ sub biounit : Tests {
     my ($self) = @_;
     my $obj = $self->{obj};
     is $obj->author->domain->keys->length, 6;
-}
-
-sub graph : Tests {
-    my ($self) = @_;
-    my $obj = $self->{obj};
-    # Interaction in the DB have direction, but this graph is undirected
-    # Half as many
-    is scalar($obj->graph->edges), 16/2 or diag show $obj->contacts;
 }
 
 sub crystal_contacts : Tests {
@@ -120,16 +103,5 @@ sub domains : Tests {
         or diag show $obj;
 }
 
-sub qcons_contacts : Tests {
-    my ($self) = @_;
-    my $obj = $self->{obj};
-    my $contacts = $obj->qcons_contacts;
-    is $contacts->length, 2
-        or diag show $obj;
-    # Verify the actual contacts
-    my $flattened = [ sort map { "@$_" } @$contacts ];
-    eq_array $flattened, [ 'C B', 'D B' ]
-        or diag show $contacts;
-}
 
 1;
