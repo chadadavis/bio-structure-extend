@@ -33,6 +33,7 @@ use lib "$Bin/../lib";
 
 use SBG::SymmExt;
 #use Devel::Comments;
+mkdir 'extensions';
 
 for my $pdbid (@ARGV) {
     my $done_file = "extensions/$pdbid";
