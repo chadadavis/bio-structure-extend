@@ -35,7 +35,8 @@ Placeholder class until BioX::Structure::Complex is complete
 #use Devel::Comments;
 
 use MooseX::Declare;
-class SBG::SymmExt::Complex {
+class SBG::SymmExt::Complex 
+    with (SBG::Role::Clonable, SBG::Role::Transformable)  {
 
 use strict;
 use warnings;
@@ -96,8 +97,8 @@ method _hslice (@fields) {
     return { map { $_ => $self->{$_} } @fields };
 }
 
-method clone {
-    return dclone $self;
+method transform ($matrix) {
+    $self->domains->map(sub { $_->transform($matrix) });
 }
 
 } # class

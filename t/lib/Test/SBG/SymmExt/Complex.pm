@@ -6,6 +6,7 @@ use base qw(Test::Class);
 use Test::More;
 use Moose::Autobox;
 use Data::Show;
+use PDL;
 
 # If executed directly, as a script, rather than a loaded module
 if (! caller) {
@@ -40,5 +41,17 @@ sub author : Tests {
 
 }
 
+sub transform : Tests {
+    my ($self) = @_;
+    my $obj = $self->{obj};
+    my $matrix = pdl [ 
+        [ 1, 0, 0, 0, ],
+        [ 0, 2, 0, 0, ],
+        [ 1, 0, 3, 0, ],
+        [ 1, 0, 0, 1, ],
+    ];
+    $obj->transform($matrix);
+    ok all approx($obj->domains->first->transformation->matrix, $matrix);
+}
 
 1;
